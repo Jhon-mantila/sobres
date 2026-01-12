@@ -1,0 +1,26 @@
+# --- Laravel ---
+docker/sobres/vendor/
+docker/sobres/node_modules/
+docker/sobres/public/build/
+docker/sobres/public/hot
+
+docker/sobres/.env
+docker/sobres/.env.*
+
+docker/sobres/storage/logs/*
+docker/sobres/storage/framework/*
+!docker/sobres/storage/framework/.gitignore
+
+# --- Docker ---
+docker/.env
+docker/**/.env
+
+# --- OS / IDE ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- Composer / NPM cache ---
+composer.lock
+package-lock.json

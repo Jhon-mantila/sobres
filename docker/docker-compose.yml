@@ -1,0 +1,52 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./app/Dockerfile
+    container_name: sobres_app
+    user: "1000:1000"
+    ports:
+      - "8087:80"
+    volumes:
+      - ./sobres:/var/www/html
+      - ./app/vhost.conf:/etc/apache2/sites-available/000-default.conf
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: sobres_db
+    environment:
+      MYSQL_DATABASE: sobres
+      MYSQL_USER: sobres_user
+      MYSQL_PASSWORD: sobres_pass
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3307:3306"
+    volumes:
+      - sobres_db_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: sobres_pma
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    ports:
+      - "8088:80"
+    depends_on:
+      - db
+  node:
+    image: node:20-alpine
+    container_name: sobres_node
+    working_dir: /var/www/html
+    volumes:
+    - ./sobres:/var/www/html
+    - /var/www/html/node_modulesz
+    ports:
+      - "5173:5173"
+    command: sh -lc "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    depends_on:
+      - app
+volumes:
+  sobres_db_data:
