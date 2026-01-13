@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('registro_imagens', function (Blueprint $table) {
             $table->char('id', 36)->primary();
 
-            $table->char('sobre_plantilla_id', 32);
+            $table->char('sobre_plantilla_id', 36);
             $table->foreign('sobre_plantilla_id')->references('id')->on('sobre_plantillas')->onDelete('cascade');
             $table->string('imagen');
             $table->text('title')->nullable();
