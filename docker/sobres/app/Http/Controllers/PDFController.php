@@ -39,8 +39,8 @@ class PDFController extends Controller
         $rows = 4;
         $perPage = $cols * $rows; // 12
 
-        // Tamaño imagen deseado: 5.2cm = 52mm
-        $imgSize = 52;
+        // Tamaño imagen deseado: 5.1cm = 51mm
+        $imgSize = 51;
 
         // Espacios entre celdas (ajústalos si quieres más “aire”)
         $gapX = 10; // mm
