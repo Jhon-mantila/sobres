@@ -23,7 +23,7 @@ class RegistroImagenController extends Controller
     {
         $validated = $request->validate([
             'sobre_plantilla_id' => 'required|string|exists:sobre_plantillas,id',
-            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:6096',
         ]);
 
         $guardadas = [];
@@ -72,6 +72,38 @@ class RegistroImagenController extends Controller
         }
 
         return response()->json(['message' => 'Orden actualizado correctamente']);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $imagen = \App\Models\RegistroImagen::findOrFail($id);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:6096',
+        ]);
+
+        // Siempre actualiza título
+        $imagen->title = $validated['title'];
+
+        // Si viene imagen nueva, reemplaza
+        if ($request->hasFile('image')) {
+            // eliminar anterior
+            $oldPath = public_path("storage/{$imagen->imagen}");
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
+
+            $folder = 'images/' . $imagen->sobre_plantilla_id;
+            $path = $request->file('image')->store($folder, 'public');
+
+            $imagen->imagen = $path;
+            $imagen->tipo = $request->file('image')->getClientMimeType();
+        }
+
+        $imagen->save();
+
+        return response()->json(['message' => 'Imagen actualizada con éxito']);
     }
 
     public function destroy($id)
