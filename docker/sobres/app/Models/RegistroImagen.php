@@ -11,7 +11,7 @@ class RegistroImagen extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
-    protected $table = 'registro_imagenes';
+    protected $table = 'registro_imagens';
     use HasFactory;
     use HasUuids; // para visualizar bien los id creados con uuid
     protected $fillable = [

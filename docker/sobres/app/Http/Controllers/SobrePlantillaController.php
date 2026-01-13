@@ -42,7 +42,7 @@ class SobrePlantillaController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('SobresPlantilla/Create');
     }
 
     /**
@@ -50,7 +50,21 @@ class SobrePlantillaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nombre_sobre' => ['required', 'string', 'max:255', 'unique:sobre_plantillas,nombre_sobre'],
+        ], [
+            'nombre_sobre.required' => 'El nombre del sobre es obligatorio.',
+            'nombre_sobre.unique' => 'Ya existe una plantilla con ese nombre.',
+        ]);
+
+        $sobre = SobrePlantilla::create([
+            'nombre_sobre' => $validated['nombre_sobre'],
+        ]);
+
+        return redirect()
+            ->route('sobres-plantilla.index')
+            ->with('success', 'Plantilla creada correctamente.');
+    
     }
 
     /**
@@ -58,15 +72,25 @@ class SobrePlantillaController extends Controller
      */
     public function show(string $id)
     {
-        //
+        
+        $sobre = SobrePlantilla::with('imagenes')
+            ->findOrFail($id);
+        
+        return Inertia::render('SobresPlantilla/Show', [
+            'sobre' => $sobre,
+        ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, string $id)
     {
-        //
+        $sobre = SobrePlantilla::findOrFail($id);
+
+        return Inertia::render('SobresPlantilla/Edit', [
+            'sobre' => $sobre,
+        ]);
     }
 
     /**
@@ -74,7 +98,29 @@ class SobrePlantillaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+    $sobre = SobrePlantilla::findOrFail($id);
+
+        $validated = $request->validate([
+            'nombre_sobre' => [
+                'required',
+                'string',
+                'max:255',
+                // unique pero permitiendo el mismo registro actual
+                'unique:sobre_plantillas,nombre_sobre,' . $sobre->id . ',id',
+            ],
+        ], [
+            'nombre_sobre.required' => 'El nombre del sobre es obligatorio.',
+            'nombre_sobre.unique' => 'Ya existe una plantilla con ese nombre.',
+        ]);
+
+        $sobre->update([
+            'nombre_sobre' => $validated['nombre_sobre'],
+        ]);
+
+        // updated_at se actualiza solo por timestamps()
+        return redirect()
+            ->route('sobres-plantilla.show', $sobre->id)
+            ->with('success', 'Plantilla actualizada correctamente.');
     }
 
     /**
