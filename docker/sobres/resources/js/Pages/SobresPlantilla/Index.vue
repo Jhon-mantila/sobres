@@ -103,14 +103,33 @@ watch(search, (val) => {
                       {{ sobre_plantilla.created_at }}
                     </td>
 
-                    <td class="px-4 py-2">
-                      <Link
-                        :href="route('sobres-plantilla.edit', sobre_plantilla.id)"
-                        class="text-blue-600 hover:text-blue-800 hover:underline"
-                      >
-                        Editar
-                      </Link>
-                    </td>
+<td class="px-4 py-2">
+  <div class="flex items-center gap-3">
+    <Link
+      :href="route('sobres-plantilla.edit', sobre_plantilla.id)"
+      class="text-blue-600 hover:text-blue-800 hover:underline"
+    >
+      Editar
+    </Link>
+
+    <a
+      v-if="(sobre_plantilla.imagenes_count ?? 0) > 0"
+      :href="`/sobres-plantilla/${sobre_plantilla.id}/pdf`"
+      target="_blank"
+      class="inline-flex items-center rounded-md bg-blue-500 px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-blue-700"
+    >
+      PDF
+    </a>
+
+    <span
+      v-else
+      class="text-xs text-gray-400"
+      title="Este sobre aún no tiene imágenes"
+    >
+      Sin PDF
+    </span>
+  </div>
+</td>
                   </tr>
                 </tbody>
               </table>

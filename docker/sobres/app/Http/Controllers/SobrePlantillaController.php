@@ -18,7 +18,8 @@ class SobrePlantillaController extends Controller
 
         // Consulta base 
         $query = SobrePlantilla::query();
-        
+        // 👇 agrega esto
+        $query->withCount('imagenes');
         // Aplicar búsqueda si hay un término
         if ($search) {
             $query->where('nombre_sobre', 'LIKE', "%{$search}%");
