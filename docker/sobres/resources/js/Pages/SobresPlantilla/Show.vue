@@ -373,12 +373,12 @@ const updateImage = () => {
               <template #item="{ element }">
                 <div class="bg-white shadow-md rounded-lg p-4 border flex flex-col items-center">
                   <input type="checkbox" v-model="selectedImages" :value="element.id" class="mb-2">
-                  <div class="w-full aspect-[1/1] overflow-hidden rounded-lg ">
-                  <img
-                    :src="`/storage/${element.imagen}`"
-                    :alt="element.title"
-                    class="w-full h-full object-contain"
-                  >
+                  <div class="w-full aspect-[3/2] overflow-hidden rounded-lg ">
+                    <img
+                      :src="`/storage/${element.imagen}`"
+                      :alt="element.title"
+                      class="w-full h-full object-contain"
+                    >
                   </div>
                   <div class="mt-3 text-center">
                     <p class="font-semibold text-gray-800">{{ element.title }}</p>
