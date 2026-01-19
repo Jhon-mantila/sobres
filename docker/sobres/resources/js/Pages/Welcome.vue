@@ -94,7 +94,7 @@ const POS_URL = 'https://pos.kyravaluos.com'
             <!-- Plantillas (solo si está logueado) -->
             <Link
               v-if="$page.props.auth.user"
-              :href="route('plantillas.index')"
+              :href="route('sobres-plantilla.index')"
               class="rounded-xl px-5 py-3 text-sm font-semibold ring-1 ring-gray-200 transition hover:bg-gray-100 dark:ring-zinc-700 dark:hover:bg-zinc-800"
             >
               Plantillas
@@ -161,7 +161,7 @@ const POS_URL = 'https://pos.kyravaluos.com'
 
             <Link
               v-if="$page.props.auth.user"
-              :href="route('plantillas.index')"
+              :href="route('sobres-plantilla.index')"
               class="block rounded-2xl bg-gray-50 p-4 ring-1 ring-gray-200 transition hover:bg-gray-100 dark:bg-zinc-950 dark:ring-zinc-800 dark:hover:bg-zinc-900"
             >
               <p class="text-sm font-semibold">Plantillas</p>
