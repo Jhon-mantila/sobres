@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Head, Link } from '@inertiajs/vue3'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 import draggable from 'vuedraggable'
 import { useToast } from "vue-toastification";
@@ -31,8 +31,32 @@ const isUploading = ref(false)
 const isUpdating = ref(false)
 const uploadProgress = ref(0)
 
+// Scroll-to-top button
+const showScrollTop = ref(false)
+const topSentinel = ref(null)
+
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+let io = null
+
 onMounted(() => {
   fetchImages()
+
+  // Mostrar botón cuando el usuario pierda el inicio (cuando el sentinel sale de vista)
+  io = new IntersectionObserver(
+    ([entry]) => {
+      showScrollTop.value = !entry.isIntersecting
+    },
+    { threshold: 0.1 }
+  )
+
+  if (topSentinel.value) io.observe(topSentinel.value)
+})
+
+onBeforeUnmount(() => {
+  if (io) io.disconnect()
 })
 
 const fetchImages = () => {
@@ -273,6 +297,7 @@ const updateImage = () => {
   <Head :title="`Plantilla: ${sobre.nombre_sobre}`" />
 
   <AuthenticatedLayout>
+    <div ref="topSentinel" class="h-1"></div>
     <template #header>
       <div class="flex items-center justify-between">
         <h2 class="text-xl font-semibold leading-tight text-gray-800">
@@ -343,7 +368,7 @@ const updateImage = () => {
               :list="imagenes"
               item-key="id"
               @end="updateOrder"
-              class="grid grid-cols-1 md:grid-cols-2 gap-6"
+              class="grid grid-cols-1 md:grid-cols-3 gap-6"
             >
               <template #item="{ element }">
                 <div class="bg-white shadow-md rounded-lg p-4 border flex flex-col items-center">
@@ -480,7 +505,16 @@ const updateImage = () => {
 
     </div>
     </div>
-
+    
+    <!-- Botón volver al inicio -->
+    <button
+      v-if="showScrollTop"
+      type="button"
+      @click="scrollToTop"
+      class="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 rounded-full bg-gray-900 px-4 py-3 text-xs font-semibold uppercase tracking-widest text-white shadow-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400"
+    >
+      ↑ Inicio
+    </button>
 
 
   </AuthenticatedLayout>
