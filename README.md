@@ -93,6 +93,12 @@ docker compose exec app php artisan migrate --seed
 docker compose exec node npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
+## Modo producción sin Levantar Vite
+
+```bash
+docker compose exec node npm run build
+```
+
 ## Acceso local
 
 * Aplicación: `http://localhost:8087`
