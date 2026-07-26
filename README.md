@@ -27,7 +27,7 @@ Entra a la carpeta donde está Docker y levanta los contenedores:
 
 ```bash
 cd docker
-docker compose up -d --build
+docker compose up --build
 ```
 
 Si tu instalación usa el comando antiguo:
