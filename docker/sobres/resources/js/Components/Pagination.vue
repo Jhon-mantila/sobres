@@ -7,6 +7,17 @@ defineProps({
     required: true,
   },
 })
+
+// Evita Mixed Content: el paginado de Laravel a veces manda http:// detrás del proxy.
+const toSafeHref = (url) => {
+  if (!url) return null
+  try {
+    const parsed = new URL(url, window.location.origin)
+    return parsed.pathname + parsed.search + parsed.hash
+  } catch {
+    return url
+  }
+}
 </script>
 
 <template>
@@ -22,7 +33,7 @@ defineProps({
       <!-- Link activo / normal -->
       <Link
         v-else
-        :href="link.url"
+        :href="toSafeHref(link.url)"
         preserve-scroll
         preserve-state
         class="px-3 py-2 text-sm border rounded hover:bg-gray-100"
