@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\RegistroImagen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class RegistroImagenController extends Controller
 {
@@ -23,7 +25,7 @@ class RegistroImagenController extends Controller
     {
         $validated = $request->validate([
             'sobre_plantilla_id' => 'required|string|exists:sobre_plantillas,id',
-            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:6096',
+            'images.*' => 'required|image|mimes:jpeg,png,jpg,jfif,gif,webp|max:6096',
         ]);
 
         $guardadas = [];
@@ -34,7 +36,7 @@ class RegistroImagenController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $file) {
                 $folder = 'images/' . $request->sobre_plantilla_id;
-                $path = $file->store($folder, 'public');
+                $path = $this->storeImageFile($file, $folder);
 
                 $nombreSinExtension = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
 
@@ -45,7 +47,7 @@ class RegistroImagenController extends Controller
                     'sobre_plantilla_id' => $request->sobre_plantilla_id,
                     'imagen' => $path,
                     'title' => $nombreSinExtension,
-                    'tipo' => $file->getClientMimeType(),
+                    'tipo' => $this->mimeFromStoredPath($path),
                     'orden' => $orden,
                 ]);
 
@@ -80,7 +82,7 @@ class RegistroImagenController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:6096',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,jfif,gif,webp|max:6096',
         ]);
 
         // Siempre actualiza título
@@ -95,15 +97,98 @@ class RegistroImagenController extends Controller
             }
 
             $folder = 'images/' . $imagen->sobre_plantilla_id;
-            $path = $request->file('image')->store($folder, 'public');
+            $file = $request->file('image');
+            $path = $this->storeImageFile($file, $folder);
 
             $imagen->imagen = $path;
-            $imagen->tipo = $request->file('image')->getClientMimeType();
+            $imagen->tipo = $this->mimeFromStoredPath($path);
         }
 
         $imagen->save();
 
         return response()->json(['message' => 'Imagen actualizada con éxito']);
+    }
+
+    /**
+     * Guarda la imagen:
+     * - .jfif/.jpeg → .jpg
+     * - .webp → convierte a .jpg (TCPDF no embebe WebP de forma fiable)
+     */
+    private function storeImageFile($file, string $folder): string
+    {
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'jpg');
+        $mime = strtolower((string) ($file->getMimeType() ?: $file->getClientMimeType() ?: ''));
+
+        if ($extension === 'webp' || $mime === 'image/webp') {
+            return $this->storeWebpAsJpeg($file, $folder);
+        }
+
+        if ($extension === 'jfif' || $extension === 'jpeg') {
+            $extension = 'jpg';
+        }
+
+        $filename = Str::random(40) . '.' . $extension;
+
+        return $file->storeAs($folder, $filename, 'public');
+    }
+
+    private function storeWebpAsJpeg($file, string $folder): string
+    {
+        if (!function_exists('imagecreatefromwebp') || !function_exists('imagejpeg')) {
+            throw ValidationException::withMessages([
+                'images' => 'El servidor no soporta conversión WebP. Reconstruye la imagen Docker con GD+WebP.',
+            ]);
+        }
+
+        $src = @imagecreatefromwebp($file->getRealPath());
+        if ($src === false) {
+            throw ValidationException::withMessages([
+                'images' => 'No se pudo leer la imagen WebP.',
+            ]);
+        }
+
+        $width = imagesx($src);
+        $height = imagesy($src);
+        $dst = imagecreatetruecolor($width, $height);
+        $white = imagecolorallocate($dst, 255, 255, 255);
+        imagefill($dst, 0, 0, $white);
+        imagecopy($dst, $src, 0, 0, 0, 0, $width, $height);
+
+        $filename = Str::random(40) . '.jpg';
+        $relative = trim($folder, '/') . '/' . $filename;
+        $absolute = Storage::disk('public')->path($relative);
+
+        $directory = dirname($absolute);
+        if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+            imagedestroy($src);
+            imagedestroy($dst);
+            throw ValidationException::withMessages([
+                'images' => 'No se pudo crear el directorio de imágenes.',
+            ]);
+        }
+
+        $ok = imagejpeg($dst, $absolute, 90);
+        imagedestroy($src);
+        imagedestroy($dst);
+
+        if (!$ok) {
+            throw ValidationException::withMessages([
+                'images' => 'No se pudo convertir la imagen WebP a JPEG.',
+            ]);
+        }
+
+        return $relative;
+    }
+
+    private function mimeFromStoredPath(string $path): string
+    {
+        return match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            default => 'image/jpeg',
+        };
     }
 
     public function destroy($id)

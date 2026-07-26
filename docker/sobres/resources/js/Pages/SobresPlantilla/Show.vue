@@ -13,8 +13,14 @@ const MAX_MB = 6; // mismo que tu backend (max:4096 => 4MB)
 const MAX_BYTES = MAX_MB * 1024 * 1024;
 
 // extensiones permitidas (alineadas con backend)
-const ALLOWED_EXT = ["jpg", "jpeg", "png", "gif"];
-const ALLOWED_MIME = ["image/jpeg", "image/png", "image/gif"];
+const ALLOWED_EXT = ["jpg", "jpeg", "jfif", "png", "gif", "webp"];
+const ALLOWED_MIME = ["image/jpeg", "image/pjpeg", "image/jfif", "image/png", "image/gif", "image/webp"];
+
+const isAllowedMime = (file, ext) => {
+  // Algunos navegadores/OS dejan type vacío en .jfif / .webp
+  if (!file.type) return ALLOWED_EXT.includes(ext);
+  return ALLOWED_MIME.includes(file.type);
+};
 
 const props = defineProps({
   sobre: Object,
@@ -78,7 +84,7 @@ const handleFileUpload = (event) => {
   const validFiles = files.filter((file) => {
     const ext = (file.name.split(".").pop() || "").toLowerCase();
     const okExt = ALLOWED_EXT.includes(ext);
-    const okMime = ALLOWED_MIME.includes(file.type);
+    const okMime = isAllowedMime(file, ext);
     const okSize = file.size <= MAX_BYTES;
 
     if (!okExt || !okMime || !okSize) {
@@ -221,7 +227,7 @@ const handleFileUpdate = (event) => {
 
   const ext = (file.name.split(".").pop() || "").toLowerCase();
   const okExt = ALLOWED_EXT.includes(ext);
-  const okMime = ALLOWED_MIME.includes(file.type);
+  const okMime = isAllowedMime(file, ext);
   const okSize = file.size <= MAX_BYTES;
 
   if (!okSize) {
@@ -413,7 +419,13 @@ const updateImage = () => {
       <div class="relative bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
         <h3 class="text-lg font-semibold mb-4">Subir Imágenes</h3>
 
-        <input type="file" multiple @change="handleFileUpload" class="mb-4 w-full">
+        <input
+          type="file"
+          multiple
+          accept=".jpg,.jpeg,.jfif,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
+          @change="handleFileUpload"
+          class="mb-4 w-full"
+        >
         <p class="text-sm text-gray-600 mb-3">
             Máximo: <b>{{ MAX_MB }}MB</b> por imagen. Formatos: <b>{{ ALLOWED_EXT.join(', ') }}</b>.
         </p>
@@ -470,7 +482,13 @@ const updateImage = () => {
         >
 
         <label class="block text-sm font-medium text-gray-700">Reemplazar imagen (opcional)</label>
-        <input ref="editFileInputRef" type="file" @change="handleFileUpdate" class="mt-1 w-full mb-4">
+        <input
+          ref="editFileInputRef"
+          type="file"
+          accept=".jpg,.jpeg,.jfif,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
+          @change="handleFileUpdate"
+          class="mt-1 w-full mb-4"
+        >
         <p class="text-sm text-gray-600 mb-3">
             Máximo: <b>{{ MAX_MB }}MB</b> por imagen. Formatos: <b>{{ ALLOWED_EXT.join(', ') }}</b>.
         </p>

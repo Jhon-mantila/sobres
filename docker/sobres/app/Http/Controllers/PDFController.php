@@ -119,6 +119,10 @@ class PDFController extends Controller
                 $imgY = $cellY + (($cellH - $imgSize) / 2);
 
                 if (file_exists($imgPath)) {
+                    // .jfif es JPEG; forzar tipo por si queda alguna ruta antigua con esa extensión
+                    $ext = strtolower(pathinfo($imgPath, PATHINFO_EXTENSION));
+                    $imageType = in_array($ext, ['jfif', 'jpg', 'jpeg'], true) ? 'JPEG' : '';
+
                     // Imagen EXACTA 52x52 (si quieres mantener proporción sin deformar, te lo ajusto)
                     $pdf->Image(
                         $imgPath,
@@ -126,7 +130,7 @@ class PDFController extends Controller
                         $imgY,
                         $imgSize,
                         $imgSize,
-                        '',
+                        $imageType,
                         '',
                         '',
                         false,
