@@ -99,6 +99,11 @@ docker compose exec node npm run dev -- --host 0.0.0.0 --port 5173
 docker compose exec node npm run build
 ```
 
+## Levantar las imagenes para que se vean
+
+```bash
+docker compose exec app php artisan storage:link
+```
 ## Acceso local
 
 * Aplicación: `http://localhost:8087`
